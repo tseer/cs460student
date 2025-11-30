@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assignment 5 - WebGPU</title>
+  <style>
+    html,
+    body {
+      background-color: #000000;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden !important;
+    }
+  </style>
+  <script src=" https://cdn.babylonjs.com/babylon.js "></script>
+  <script src=" https://cdn.babylonjs.com/loaders/babylon.glTF2FileLoader.min.js"></script>
+</head>
+
+<body>
+  <script type="module">
+    const canvas = document.createElement("canvas");
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+    document.body.appendChild(canvas);
+
+    // initialize babylon scene and engine
+    const engine = new BABYLON.WebGPUEngine(canvas, { antialiasing: true });
+    await engine.initAsync();
+    const scene = new BABYLON.Scene(engine);
+    // environment texture https://polyhaven.com/a/blaubeuren_church_square
+    scene.environmentTexture = new BABYLON.CubeTexture("environment.env", scene);
+    scene.createDefaultSkybox(
+      scene.environmentTexture, // texture
+      true, // pbr
+      1000 // size
+    );
+
+    // load model
+    await BABYLON.SceneLoader.AppendAsync('', 'poly.glb', scene);
+    // console.log(scene.meshes);
+    const mesh = scene.meshes[2];
+
+    // Adding cool materials from Babylon.js 
+    const pbrMat = new BABYLON.PBRMaterial("pbrMat", scene);
+    pbrMat.roughness = 0.05;
+    pbrMat.alpha = 1.0;
+
+    pbrMat.subSurface.isRefractionEnabled = true;
+    pbrMat.subSurface.indexOfRefraction = 2;
+    pbrMat.subSurface.tintColor = new BABYLON.Color3(0.15, 0.6, 1.0);
+
+    pbrMat.clearCoat.isEnabled = true;
+    pbrMat.clearCoat.intensity = 1.0;
+
+    mesh.material = pbrMat;
+    mesh.rotation = new BABYLON.Vector3(0, -Math.PI, 0);
+    scene.createDefaultCameraOrLight(true, true, true);
+    scene.activeCamera.attachControl(canvas, true);
+    engine.runRenderLoop(() => scene.render());
+    addEventListener('resize', () => engine.resize());
+
+  </script>
+</body>
+
+</html>
